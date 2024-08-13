@@ -62,37 +62,37 @@ int main(int argc, char *argv[])
     // sigma a 的值的设定 默认 10 
     TCLAP::ValueArg<float> sigma_A_Arg("a", "sigma_a", "angle regularizer", false, L3D_DEF_SCORING_ANG_REGULARIZER, "float");
     cmd.add(sigma_A_Arg);
-    // sigma p 的值的设定 
+    // sigma p 的值的设定 2.5
     TCLAP::ValueArg<float> sigma_P_Arg("p", "sigma_p", "position regularizer (if negative: fixed sigma_p in world-coordinates)", false, L3D_DEF_SCORING_POS_REGULARIZER, "float");
     cmd.add(sigma_P_Arg);
-
+    // 最小极线重叠区域 默认是 0.25
     TCLAP::ValueArg<float> epipolarArg("e", "min_epipolar_overlap", "minimum epipolar overlap for matching", false, L3D_DEF_EPIPOLAR_OVERLAP, "float");
     cmd.add(epipolarArg);
-
+    // knn 匹配保留的数量 
     TCLAP::ValueArg<int> knnArg("k", "knn_matches", "number of matches to be kept (<= 0 --> use all that fulfill overlap)", false, L3D_DEF_KNN, "int");
     cmd.add(knnArg);
-
+    // 每张图像最多分割2d线段的数量 3000
     TCLAP::ValueArg<int> segNumArg("y", "num_segments_per_image", "maximum number of 2D segments per image (longest)", false, L3D_DEF_MAX_NUM_SEGMENTS, "int");
     cmd.add(segNumArg);
-
+    // 相机可以看到最少的3d线段的数量 3 
     TCLAP::ValueArg<int> visibilityArg("v", "visibility_t", "minimum number of cameras to see a valid 3D line", false, L3D_DEF_MIN_VISIBILITY_T, "int");
     cmd.add(visibilityArg);
-
+    // 在聚类之前执行复制器动态扩散 false
     TCLAP::ValueArg<bool> diffusionArg("d", "diffusion", "perform Replicator Dynamics Diffusion before clustering", false, L3D_DEF_PERFORM_RDD, "bool");
     cmd.add(diffusionArg);
-
+    // 加载或存储线段 推荐用于大图像 True
     TCLAP::ValueArg<bool> loadArg("l", "load_and_store_flag", "load/store segments (recommended for big images)", false, L3D_DEF_LOAD_AND_STORE_SEGMENTS, "bool");
     cmd.add(loadArg);
-
+    // 共线的阈值 -1
     TCLAP::ValueArg<float> collinArg("r", "collinearity_t", "threshold for collinearity", false, L3D_DEF_COLLINEARITY_T, "float");
     cmd.add(collinArg);
-
+    // 使用cuda true 
     TCLAP::ValueArg<bool> cudaArg("g", "use_cuda", "use the GPU (CUDA)", false, true, "bool");
     cmd.add(cudaArg);
-
+    // 使用ceres求解
     TCLAP::ValueArg<bool> ceresArg("c", "use_ceres", "use CERES (for 3D line optimization)", false, L3D_DEF_USE_CERES, "bool");
     cmd.add(ceresArg);
-
+    // 正则化深度常数  
     TCLAP::ValueArg<float> constRegDepthArg("z", "const_reg_depth", "use a constant regularization depth (only when sigma_p is metric!)", false, -1.0f, "float");
     cmd.add(constRegDepthArg);
 
