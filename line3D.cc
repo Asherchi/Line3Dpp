@@ -1717,12 +1717,7 @@ namespace L3DPP
             return;
         }
 
-        // init
-        max_iter_CERES_ = max_iter_CERES;
-        visibility_t_ = std::max(int(visibility_t),3);
-        clusters3D_.clear();
-        lines3D_.clear();
-        float prev_collin_t = collinearity_t_;
+        // initLine3D
         collinearity_t_ = collinearity_t;
 
 #ifdef L3DPP_CUDA

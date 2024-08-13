@@ -33,29 +33,36 @@
 // INFO:
 // This executable reads colmap results (cameras.txt, images.txt, and points3D.txt) and executes the Line3D++ algorithm.
 // If distortion coefficients are stored in the cameras.txt file, you need to use the _original_ (distorted) images!
+// 读取的数据只能是colmap 的txt文件 不能是bin文件
+
+/*
+    <T>是参数值的类型，"flag"是短选项（可选），"flagname"是长选项，"description"是对这个参数的描述，
+    false表示这个参数不是必需的（如果是必需的，应该设置为true），T()是参数的默认值（如果参数未指定时使用），
+    "required value"是当使用帮助信息时显示的额外文本，提示用户这个参数需要一个值。
+*/
 
 int main(int argc, char *argv[])
 {
     TCLAP::CmdLine cmd("LINE3D++");
-
-    TCLAP::ValueArg<std::string> inputArg("i", "input_folder", "folder containing the images", true, "", "string");
+    // 输入图像的文件
+    gTCLAP::ValueAr<std::string> inputArg("i", "input_folder", "folder containing the images", true, "", "string");
     cmd.add(inputArg);
-
+    // 输入colmap的文件 要求是txt的格式 
     TCLAP::ValueArg<std::string> sfmArg("m", "sfm_folder", "full path to the colmap result files (cameras.txt, images.txt, and points3D.txt), if not specified --> input_folder", false, "", "string");
     cmd.add(sfmArg);
-
+    // 输入的文件夹路径
     TCLAP::ValueArg<std::string> outputArg("o", "output_folder", "folder where result and temporary files are stored (if not specified --> sfm_folder+'/Line3D++/')", false, "", "string");
     cmd.add(outputArg);
-
+    // 最大图像宽度 用于线段的检测 默认是-1
     TCLAP::ValueArg<int> scaleArg("w", "max_image_width", "scale image down to fixed max width for line segment detection", false, L3D_DEF_MAX_IMG_WIDTH, "int");
     cmd.add(scaleArg);
-
+    // 相邻图像数量 
     TCLAP::ValueArg<int> neighborArg("n", "num_matching_neighbors", "number of neighbors for matching", false, L3D_DEF_MATCHING_NEIGHBORS, "int");
     cmd.add(neighborArg);
-
+    // sigma a 的值的设定 默认 10 
     TCLAP::ValueArg<float> sigma_A_Arg("a", "sigma_a", "angle regularizer", false, L3D_DEF_SCORING_ANG_REGULARIZER, "float");
     cmd.add(sigma_A_Arg);
-
+    // sigma p 的值的设定 
     TCLAP::ValueArg<float> sigma_P_Arg("p", "sigma_p", "position regularizer (if negative: fixed sigma_p in world-coordinates)", false, L3D_DEF_SCORING_POS_REGULARIZER, "float");
     cmd.add(sigma_P_Arg);
 
