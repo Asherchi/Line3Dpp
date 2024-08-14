@@ -75,7 +75,7 @@ inline __host__ __device__ float2 make_float2(float s)
 }
 inline __host__ __device__ float2 make_float2(float3 a)
 {
-    return make_float2(a.x, a.y);
+    return make_float2(a.x, a.y);  // make_float2 在 cuda_runtime的 vector_functions中定义
 }
 inline __host__ __device__ float2 make_float2(int2 a)
 {

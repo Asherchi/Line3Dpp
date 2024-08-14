@@ -46,7 +46,7 @@ namespace L3DPP
 
     template <typename T>
     inline void
-    serializeFromFile(std::string file, T& data, bool binary = true)
+    serializeFromFile(std::string file, T& data, bool binary = true)  // 反序列化 从文件中读取数据 反序列化到 data
     {
         std::ifstream is(file.c_str(), binary? std::ios::binary : std::ios::in);
         if(is.bad()) {

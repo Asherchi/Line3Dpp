@@ -44,7 +44,7 @@
         float x;
         float y;
         float z;
-        float w;
+        float w;  // 这个w是什么？
     };
 
     // float2 - for non-CUDA machines

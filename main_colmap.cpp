@@ -80,7 +80,7 @@ int main(int argc, char *argv[])
     // 在聚类之前执行复制器动态扩散 false
     TCLAP::ValueArg<bool> diffusionArg("d", "diffusion", "perform Replicator Dynamics Diffusion before clustering", false, L3D_DEF_PERFORM_RDD, "bool");
     cmd.add(diffusionArg);
-    // 加载或存储线段 推荐用于大图像 True
+    // loadAndStore 加载或存储线段 推荐用于大图像 True
     TCLAP::ValueArg<bool> loadArg("l", "load_and_store_flag", "load/store segments (recommended for big images)", false, L3D_DEF_LOAD_AND_STORE_SEGMENTS, "bool");
     cmd.add(loadArg);
     // 共线的阈值 -1
@@ -105,11 +105,11 @@ int main(int argc, char *argv[])
         sfmFolder = inputFolder;
 
     // check if colmap result folder
-    boost::filesystem::path sfm(sfmFolder);
+    boost::filesystem::path sfm(sfmFolder);  // 提供文件系统操作功能的库。
     if(!boost::filesystem::exists(sfm))
     {
         std::cerr << "colmap result folder " << sfm << " does not exist!" << std::endl;
-        return -1;
+        return -1;  // 这玩意儿都是有编号的 不错 
     }
 
     std::string outputFolder = outputArg.getValue().c_str();
@@ -117,7 +117,7 @@ int main(int argc, char *argv[])
         outputFolder = sfmFolder+"/Line3D++/";
 
     int maxWidth = scaleArg.getValue();
-    unsigned int neighbors = std::max(neighborArg.getValue(),2);
+    unsigned int neighbors = std::max(neighborArg.getValue(),2); // 最少要大于2 
     bool diffusion = diffusionArg.getValue();
     bool loadAndStore = loadArg.getValue();
     float collinearity = collinArg.getValue();
@@ -137,10 +137,10 @@ int main(int argc, char *argv[])
 
     // create Line3D++ object
     L3DPP::Line3D* Line3D = new L3DPP::Line3D(outputFolder,loadAndStore,maxWidth,
-                                              maxNumSegments,true,useGPU);
+                                              maxNumSegments,true,useGPU);  // 实例化一个line3d的类 
 
     // check if result files exist
-    boost::filesystem::path sfm_cameras(sfmFolder+"/cameras.txt");
+    boost::filesystem::path sfm_cameras(sfmFolder+"/cameras.txt"); // 获取sfm的输出以及对应的txt文件 
     boost::filesystem::path sfm_images(sfmFolder+"/images.txt");
     boost::filesystem::path sfm_points3D(sfmFolder+"/points3D.txt");
     if(!boost::filesystem::exists(sfm_cameras) || !boost::filesystem::exists(sfm_images) ||
@@ -157,15 +157,19 @@ int main(int argc, char *argv[])
     cameras_file.open(sfm_cameras.c_str());
     std::string cameras_line;
 
-    std::map<unsigned int,Eigen::Matrix3d> cams_K;
+    std::map<unsigned int,Eigen::Matrix3d> cams_K;  // map是有序的 而 hash存在问题 所以更多使用map map的效率是logn 而hash是 1 
     std::map<unsigned int,Eigen::Vector3d> cams_radial;
     std::map<unsigned int,Eigen::Vector2d> cams_tangential;
 
     while(std::getline(cameras_file,cameras_line))
     {
         // check first character for a comment (#)
-        if(cameras_line.substr(0,1).compare("#") != 0)
-        {
+        /* 
+            如果两个字符串相等，compare 函数返回 0；如果调用者字符串小于参数字符串，
+            返回一个小于 0 的值；如果调用者字符串大于参数字符串，返回一个大于 0 的值
+        */
+        if(cameras_line.substr(0,1).compare("#") != 0) 
+        {   // 解析复杂的字符串，将其分解为多个部分或变量
             std::stringstream cameras_stream(cameras_line);
 
             unsigned int camID,width,height;
@@ -226,14 +230,14 @@ int main(int argc, char *argv[])
                 return -3;
             }
 
-            Eigen::Matrix3d K;
+            Eigen::Matrix3d K;  // 3x3
             K(0,0) = fx; K(0,1) = 0;  K(0,2) = cx;
             K(1,0) = 0;  K(1,1) = fy; K(1,2) = cy;
             K(2,0) = 0;  K(2,1) = 0;  K(2,2) = 1;
 
             cams_K[camID] = K;
-            cams_radial[camID] = Eigen::Vector3d(k1,k2,k3);
-            cams_tangential[camID] = Eigen::Vector2d(p1,p2);
+            cams_radial[camID] = Eigen::Vector3d(k1,k2,k3); // 径向畸变 
+            cams_tangential[camID] = Eigen::Vector2d(p1,p2); // 切向畸变
         }
     }
     cameras_file.close();
@@ -245,13 +249,13 @@ int main(int argc, char *argv[])
     images_file.open(sfm_images.c_str());
     std::string images_line;
 
-    std::map<unsigned int,Eigen::Matrix3d> cams_R;
-    std::map<unsigned int,Eigen::Vector3d> cams_t;
-    std::map<unsigned int,Eigen::Vector3d> cams_C;
-    std::map<unsigned int,unsigned int> img2cam;
-    std::map<unsigned int,std::string> cams_images;
-    std::map<unsigned int,std::list<unsigned int> > cams_worldpoints;
-    std::map<unsigned int,Eigen::Vector3d> wps_coords;
+    std::map<unsigned int,Eigen::Matrix3d> cams_R;  // 旋转
+    std::map<unsigned int,Eigen::Vector3d> cams_t;  // 平移
+    std::map<unsigned int,Eigen::Vector3d> cams_C;  // 这个C是啥 坐标？ 3d marker? 
+    std::map<unsigned int,unsigned int> img2cam;    // 图像id 和 cam id的对应 
+    std::map<unsigned int,std::string> cams_images; 
+    std::map<unsigned int,std::list<unsigned int> > cams_worldpoints;  // list 底层实现是链表 
+    std::map<unsigned int,Eigen::Vector3d> wps_coords;  // idx是3d点的下标
     std::vector<unsigned int> img_seq;
     unsigned int imgID,camID;
 
@@ -271,18 +275,18 @@ int main(int argc, char *argv[])
                 images_stream >> imgID >> qw >> qx >> qy >> qz >> tx >> ty >> tz >> camID >> img_name;
 
                 // convert rotation
-                if(cams_K.find(camID) != cams_K.end())
+                if(cams_K.find(camID) != cams_K.end())  // 保证 camId 存在 
                 {
-                    Eigen::Matrix3d R = Line3D->rotationFromQ(qw,qx,qy,qz);
+                    Eigen::Matrix3d R = Line3D->rotationFromQ(qw,qx,qy,qz);  // world to camra 底下的t也是 
                     Eigen::Vector3d t(tx,ty,tz);
-                    Eigen::Vector3d C = (R.transpose()) * (-1.0 * t);
+                    Eigen::Vector3d C = (R.transpose()) * (-1.0 * t);  // 这个C是相机的位置 
 
                     cams_R[imgID] = R;
                     cams_t[imgID] = t;
                     cams_C[imgID] = C;
-                    cams_images[imgID] = img_name;
-                    img2cam[imgID] = camID;
-                    img_seq.push_back(imgID);
+                    cams_images[imgID] = img_name;  // 这个... 为啥不 直接 idx_images 
+                    img2cam[imgID] = camID; 
+                    img_seq.push_back(imgID);   // 保存所有的imgID的idx 
                 }
 
                 first_line = false;
@@ -306,10 +310,10 @@ int main(int argc, char *argv[])
                         {
                             int wp = atoi(wpID.c_str());
 
-                            if(wp >= 0)
+                            if(wp >= 0)  // wp是-1时 是无效的点 2d点不产生3d点 
                             {
                                 wps.push_back(wp);
-                                wps_coords[wp] = Eigen::Vector3d(0,0,0);
+                                wps_coords[wp] = Eigen::Vector3d(0,0,0);  // 初始化一个3d点
                             }
                         }
                         else
@@ -363,8 +367,8 @@ int main(int argc, char *argv[])
     for(int i=0; i<img_seq.size(); ++i)
     {
         // get camera params
-        unsigned int imgID = img_seq[i];
-        unsigned int camID = img2cam[imgID];
+        unsigned int imgID = img_seq[i];  // 获取imgID 
+        unsigned int camID = img2cam[imgID]; // 获取对应的 imgID 对应的camID 
 
         // intrinsics
         Eigen::Matrix3d K = cams_K[camID];
@@ -378,15 +382,15 @@ int main(int argc, char *argv[])
             Eigen::Vector3d t = cams_t[imgID];
             Eigen::Vector3d C = cams_C[imgID];
 
-            // read image
+            // read image 读取对应的图像数据 类型是灰度图像 
             cv::Mat image = cv::imread(inputFolder+"/"+cams_images[imgID],CV_LOAD_IMAGE_GRAYSCALE);
 
-            // undistort image
-            cv::Mat img_undist;
+            // undistort image 如果畸变大于阈值 那么进行去畸变 
+            cv::Mat img_undist; 
             if(fabs(radial(0)) > L3D_EPS || fabs(radial(1)) > L3D_EPS || fabs(radial(2)) > L3D_EPS ||
                     fabs(tangential(0)) > L3D_EPS || fabs(tangential(1)) > L3D_EPS)
             {
-                // undistorting
+                // undistorting  图像去畸变 可以学学  直接使用opencv 去畸变的  这里面去畸变原因也很简单 因为需要检测的是直线 而不是曲线 
                 Line3D->undistortImage(image,img_undist,radial,tangential,K);
             }
             else
@@ -404,17 +408,18 @@ int main(int argc, char *argv[])
                 std::list<unsigned int>::iterator it = wps_list.begin();
                 for(; it!=wps_list.end(); ++it)
                 {
-                    depths.push_back((C-wps_coords[*it]).norm());
+                    depths.push_back((C-wps_coords[*it]).norm());  // 这个深度算的是 相机中心到3d点的距离 
                 }
 
                 // median depth
-                if(depths.size() > 0)
+                if(depths.size() > 0)   
                 {
-                    std::sort(depths.begin(),depths.end());
-                    float med_depth = depths[depths.size()/2];
+                    std::sort(depths.begin(),depths.end()); 
+                    float med_depth = depths[depths.size()/2];  // 这个也太粗糙了吧 取中值 深度
 
                     // add image
-                    Line3D->addImage(imgID,img_undist,K,R,t,med_depth,wps_list);
+                    // 这里面会执行 线段的检测 
+                    Line3D->addImage(imgID,img_undist,K,R,t,med_depth,wps_list);  // 这个函数为啥有一点不合理 最后一个形参没有传入参数啊... 这样应该不可以吧
                 }
             }
         }

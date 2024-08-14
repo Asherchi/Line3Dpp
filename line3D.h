@@ -355,7 +355,7 @@ namespace L3DPP
         std::string prefix_err_;
         std::string prefix_wng_;
         bool useGPU_;
-        boost::mutex display_text_mutex_;
+        boost::mutex display_text_mutex_;  // 显示的互斥锁
 
         // line segment detection
         unsigned int max_line_segments_;

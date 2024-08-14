@@ -15,12 +15,12 @@ namespace L3DPP
     {
         // set params
         num_lines_total_ = 0;
-        med_scene_depth_ = L3D_EPS;
+        med_scene_depth_ = L3D_EPS;  // 1e-12  这个深度是干什么的
         med_scene_depth_lines_ = 0.0f;
         translation_ = Eigen::Vector3d(0,0,0);
 
         // default
-        collinearity_t_ = L3D_DEF_COLLINEARITY_T;
+        collinearity_t_ = L3D_DEF_COLLINEARITY_T;  // 共线阈值为啥是-1 
         num_neighbors_ = L3D_DEF_MATCHING_NEIGHBORS;
         epipolar_overlap_ = L3D_DEF_EPIPOLAR_OVERLAP;
         kNN_ = L3D_DEF_KNN;
@@ -105,7 +105,7 @@ namespace L3DPP
 
         cv::initUndistortRectifyMap(cvK,cvDistCoeffs,I,cvK,cv::Size(inImg.cols, inImg.rows),
                                     undistort_map_x.type(), undistort_map_x, undistort_map_y );
-        cv::remap(inImg,outImg,undistort_map_x,undistort_map_y,cv::INTER_LINEAR,cv::BORDER_CONSTANT);
+        cv::remap(inImg,outImg,undistort_map_x,undistort_map_y,cv::INTER_LINEAR,cv::BORDER_CONSTANT);  // bilinear interpolation
     }
 
     //------------------------------------------------------------------------------
@@ -118,16 +118,16 @@ namespace L3DPP
         // check size
         if(std::max(image.cols,image.rows) < L3D_DEF_MIN_IMG_WIDTH)
         {
-            display_text_mutex_.lock();
+            display_text_mutex_.lock();  // 显示的互斥锁 加锁 
             std::cout << prefix_err_ << "image is too small for reliable results: " << std::max(image.cols,image.rows);
             std::cout << "px (larger side should be >= " << L3D_DEF_MIN_IMG_WIDTH << "px)" << std::endl;
-            display_text_mutex_.unlock();
+            display_text_mutex_.unlock();  // 显示的互斥锁 解锁 
             return;
         }
 
         // check ID
         view_reserve_mutex_.lock();
-        if(views_reserved_.find(camID) != views_reserved_.end())
+        if(views_reserved_.find(camID) != views_reserved_.end()) // 如果camID 在 view reserved说明已经在使用中了
         {
             display_text_mutex_.lock();
             std::cout << prefix_err_ << "camera ID [" << camID << "] already in use!" << std::endl;
@@ -168,7 +168,7 @@ namespace L3DPP
         L3DPP::DataArray<float4>* lines = NULL;
         if(line_segments.size() == 0)
         {
-            // detect segments using LSD algorithm
+            // detect segments using LSD algorithm  LSD算法 检测线段 
             lines = detectLineSegments(camID,image);
         }
         else
@@ -253,7 +253,7 @@ namespace L3DPP
         if(image.type() == CV_8UC3)
         {
             // convert to grayscale
-            cv::cvtColor(image,imgGray,CV_RGB2GRAY);
+            cv::cvtColor(image,imgGray,CV_RGB2GRAY); // 读取的时候不是灰度图像吗 难道是3通道的灰度？
         }
         else if(image.type() == CV_8U)
         {
@@ -274,11 +274,11 @@ namespace L3DPP
         unsigned int new_width = imgGray.cols;
         unsigned int new_height = imgGray.rows;
 
-        cv::Mat imgResized;
+        cv::Mat imgResized;  // 下面看是否需要缩放 
         if(max_image_width_ > 0 && max_dim > max_image_width_)
         {
             // rescale
-            float s = float(max_image_width_)/float(max_dim);
+            float s = float(max_image_width_)/float(max_dim); // 计算缩放的系数 
             cv::resize(imgGray,imgResized,cv::Size(),s,s);
 
             upscale_x = float(imgGray.cols)/float(imgResized.cols);
@@ -300,7 +300,7 @@ namespace L3DPP
             str << data_folder_ << "segments_L3D++_" << camID << "_" << new_width << "x" << new_height << "_" << L3D_DEF_MAX_NUM_SEGMENTS << ".bin";
 
             boost::filesystem::path file(str.str());
-            if(boost::filesystem::exists(file))
+            if(boost::filesystem::exists(file))  // 执行的是 如果文件存在 直接执行反序列化 得到的线段 然后返回线段
             {
                 segments = new L3DPP::DataArray<float4>();
                 L3DPP::serializeFromFile(str.str(),*segments);
@@ -310,15 +310,15 @@ namespace L3DPP
 
         // detect line segments
 #ifndef L3DPP_OPENCV3
-        cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetectorPtr(cv::LSD_REFINE_ADV);
+        cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetectorPtr(cv::LSD_REFINE_ADV);  // 这小子又是执行opencv里面线段检测的方法
 #else
         cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetector(cv::LSD_REFINE_ADV);
 #endif //L3DPP_LSD_EXT
         std::vector<cv::Vec4f> detections;
         lsd->detect(imgResized,detections);
 
-        float diag = sqrtf(float(image.rows*image.rows)+float(image.cols*image.cols));
-        float min_len = diag*L3D_DEF_MIN_LINE_LENGTH_FACTOR;
+        float diag = sqrtf(float(image.rows*image.rows)+float(image.cols*image.cols)); // 这个算的是啥 行x行 列x列 
+        float min_len = diag*L3D_DEF_MIN_LINE_LENGTH_FACTOR;  // 线段的最小长度 
 
         L3DPP::lines2D_sorted_by_length sorted;
         for(size_t i=0; i<detections.size(); ++i)
