@@ -113,7 +113,7 @@ namespace L3DPP
                           const Eigen::Matrix3d& K, const Eigen::Matrix3d& R,
                           const Eigen::Vector3d& t, const float median_depth,
                           const std::list<unsigned int>& wps_or_neighbors,
-                          const std::vector<cv::Vec4f>& line_segments)
+                          const std::vector<cv::Vec4f>& line_segments)  
     {
         // check size
         if(std::max(image.cols,image.rows) < L3D_DEF_MIN_IMG_WIDTH)
