@@ -509,7 +509,7 @@ LineSegmentDetectorImpl::LineSegmentDetectorImpl(int _refine, double _scale, dou
 }
 
 void LineSegmentDetectorImpl::detect(const InputArray _image, OutputArray _lines,
-                OutputArray _width, OutputArray _prec, OutputArray _nfa)
+                OutputArray _width, OutputArray _prec, OutputArray _nfa)  // 有点东西啊 这是重载了cv的函数吗
 {
     Mat_<double> img = _image.getMat();
     CV_Assert(!img.empty() && img.channels() == 1);
@@ -529,8 +529,8 @@ void LineSegmentDetectorImpl::detect(const InputArray _image, OutputArray _lines
     flsd(lines, w, p, n);
 
     Mat(lines).copyTo(_lines);
-    if(w_needed) Mat(w).copyTo(_width);
-    if(p_needed) Mat(p).copyTo(_prec);
+    if(w_needed) Mat(w).copyTo(_width);  // width 
+    if(p_needed) Mat(p).copyTo(_prec);  // precisions
     if(n_needed) Mat(n).copyTo(_nfa);
 }
 
@@ -551,7 +551,7 @@ void LineSegmentDetectorImpl::flsd(std::vector<Vec4f>& lines,
         const double sprec = 3;
         const unsigned int h =  (unsigned int)(ceil(sigma * sqrt(2 * sprec * log(10.0))));
         Size ksize(1 + 2 * h, 1 + 2 * h); // kernel size
-        GaussianBlur(image, gaussian_img, ksize, sigma);
+        GaussianBlur(image, gaussian_img, ksize, sigma);  // 做了下高斯模糊 滤波 
         // Scale image to needed size
         resize(gaussian_img, scaled_image, Size(), SCALE, SCALE);
         ll_angle(rho, N_BINS, list);

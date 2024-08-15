@@ -105,7 +105,7 @@ namespace L3DPP
                   unsigned int height,
                   const bool allocate_GPU_memory=false,
                   const std::vector<PixelType>& data=std::vector<PixelType>()) :
-            width_(width), height_(height)
+            width_(width), height_(height) // height 是1 width 是小于等于最大值
         {
             // pitch (CPU)
             pitchCPU_ = width_*sizeof(PixelType);

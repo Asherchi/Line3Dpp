@@ -164,7 +164,8 @@ namespace L3DPP
             return;
         }
 
-        // detect segments
+        // 如果没有保存线段的文件的话 直接在这个位置检测图像中的线段
+        // detect segments   人生 人生 人生
         L3DPP::DataArray<float4>* lines = NULL;
         if(line_segments.size() == 0)
         {
@@ -308,7 +309,7 @@ namespace L3DPP
             }
         }
 
-        // detect line segments
+        // detect line segments  如果不存在包含线段信息的文件 直接创建线段检测方法 检测线段
 #ifndef L3DPP_OPENCV3
         cv::Ptr<cv::LineSegmentDetector> lsd = cv::createLineSegmentDetectorPtr(cv::LSD_REFINE_ADV);  // 这小子又是执行opencv里面线段检测的方法
 #else
@@ -317,16 +318,16 @@ namespace L3DPP
         std::vector<cv::Vec4f> detections;
         lsd->detect(imgResized,detections);
 
-        float diag = sqrtf(float(image.rows*image.rows)+float(image.cols*image.cols)); // 这个算的是啥 行x行 列x列 
+        float diag = sqrtf(float(image.rows*image.rows)+float(image.cols*image.cols)); // 算对角线最长的长度 
         float min_len = diag*L3D_DEF_MIN_LINE_LENGTH_FACTOR;  // 线段的最小长度 
 
-        L3DPP::lines2D_sorted_by_length sorted;
+        L3DPP::lines2D_sorted_by_length sorted;  // 保存的是线段的两个端点 以及 线段的长度 
         for(size_t i=0; i<detections.size(); ++i)
         {
             cv::Vec4f data = detections[i];
 
-            L3DPP::SegmentData2D seg2D;
-            seg2D.p1x_ = data(0)*upscale_x;
+            L3DPP::SegmentData2D seg2D;  // 这是个struct 
+            seg2D.p1x_ = data(0)*upscale_x;  // 数据是经过缩放去检测 要还原为原来的分辨率的
             seg2D.p1y_ = data(1)*upscale_y;
             seg2D.p2x_ = data(2)*upscale_x;
             seg2D.p2y_ = data(3)*upscale_y;
@@ -339,7 +340,7 @@ namespace L3DPP
                 sorted.push(seg2D);
         }
 
-        if(sorted.size() > 0)
+        if(sorted.size() > 0)  // 存在足够有效的线段数量 
         {
             // convert to dataArray
             if(sorted.size() < max_line_segments_)
